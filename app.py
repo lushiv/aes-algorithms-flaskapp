@@ -4,7 +4,7 @@ import zipfile
 from os.path import dirname, join, abspath
 from flask import Flask
 from flask import Flask, jsonify, request, render_template,redirect,url_for,flash,send_file
-from app_helper import aes_method
+from . import module
 import common
 from werkzeug.utils import secure_filename
 import pathlib
@@ -58,7 +58,7 @@ def upload_folder_encrypt():
             toFile = str(key)
             file1.write(toFile)
             file1.close()
-            aes_method.aes_encrypt_all_files(nsf_folder,secret_key=name_of_file)
+            module.aes_encrypt_all_files(nsf_folder,secret_key=name_of_file)
             nsf_path = str(UPLOAD_FOLDER)+'/' + nsf_folder
             common.ziper_(folder= nsf_path, filename=nsf_folder)
             download_path = str(UPLOAD_FOLDER)+ '/'+ nsf_folder+'_nsf.zip'
@@ -89,7 +89,7 @@ def upload_file_encrypt():
         if file and common.allowed_file(file.filename):
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            aes_method.aes_encrypt_file(file_name=filename,secret_key=sec_key)
+            module.aes_encrypt_file(file_name=filename,secret_key=sec_key)
             nsf_path = filename.replace('.mp4','')
             download_path = str(UPLOAD_FOLDER)+ '/'+ nsf_path+'.nsf'
             path = download_path
@@ -97,7 +97,6 @@ def upload_file_encrypt():
             
 
     return render_template('encrypt_file.html')
-
 
 
 @app.route('/decrypt-folder', methods=['GET', 'POST'])
@@ -116,7 +115,7 @@ def upload_folder_decrypt():
             unziper(path=file_path)
             nsf_folder = filename.replace('.zip', '')
             os.remove(file_path)
-            aes_method.aes_decrypt_all_files(nsf_folder,secret_key=key)
+            module.aes_decrypt_all_files(nsf_folder,secret_key=key)
             nsf_path = str(UPLOAD_FOLDER)+'/' + nsf_folder
             common.ziper_dec(folder= nsf_path, filename=nsf_folder)
             download_path = str(UPLOAD_FOLDER)+ '/'+ nsf_folder +'.zip'
@@ -142,14 +141,12 @@ def upload_file_decrypt():
         if file and common.allowed_file(file.filename):
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            aes_method.aes_decrypt_file(file_name=filename,secret_key=key)
+            module.aes_decrypt_file(file_name=filename,secret_key=key)
             nsf_path = filename.replace('.nsf','')
             download_path = str(UPLOAD_FOLDER)+ '/'+ nsf_path+'.mp4'
             path = download_path
             return send_file(path, as_attachment=True)
     return render_template('decrypt_file.html')
-
-
 
 if __name__ == "__main__":
     app.run(debug=True,host= '0.0.0.0', port='5000')
